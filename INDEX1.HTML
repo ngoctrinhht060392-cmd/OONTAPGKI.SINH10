@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIO QUEST 10 – Chinh phục thế giới Sinh học</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-green: #2ecc71;
+            --dark-green: #27ae60;
+            --primary-blue: #3498db;
+            --dark-blue: #2980b9;
+            --bg-color: #f0f8ff;
+            --text-main: #2c3e50;
+            --white: #ffffff;
+            --accent-orange: #f39c12;
+            --error-red: #ff6b6b;
+            --gray-light: #ecf0f1;
+            --gray-dark: #7f8c8d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 10% 20%, rgba(46, 204, 113, 0.1) 0%, rgba(52, 152, 219, 0.1) 90%);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Screens */
+        .screen { display: none; animation: fadeIn 0.5s ease; }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2, h3 { text-align: center; margin-bottom: 20px; }
+        .title { color: var(--dark-green); font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        .slogan { color: var(--primary-blue); text-align: center; font-weight: 600; margin-bottom: 30px; font-size: 1.2rem; }
+        
+        .btn {
+            background-color: var(--primary-blue); color: var(--white);
+            border: none; padding: 12px 24px; border-radius: 8px;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center;
+            gap: 10px; margin: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover { background-color: var(--dark-blue); transform: translateY(-2px); }
+        .btn-green { background-color: var(--primary-green); }
+        .btn-green:hover { background-color: var(--dark-green); }
+        .btn-orange { background-color: var(--accent-orange); }
+        .btn-orange:hover { background-color: #e67e22; }
+        .btn-outline { background-color: transparent; border: 2px solid var(--primary-blue); color: var(--primary-blue); }
+        .btn-outline:hover { background-color: var(--primary-blue); color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .card {
+            background: var(--white); border-radius: 15px; padding: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 20px;
+        }
+
+        /* Home Screen */
+        .home-menu { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 30px; }
+        .home-menu .btn { width: 100%; max-width: 300px; }
+        .stats-badge { background: var(--gray-light); padding: 10px 20px; border-radius: 20px; text-align: center; margin-top: 20px; font-weight: bold; color: var(--dark-blue); }
+
+        /* Setup/Upload Screen */
+        .upload-area { border: 2px dashed var(--primary-blue); padding: 30px; text-align: center; border-radius: 10px; margin-bottom: 20px; background: rgba(52, 152, 219, 0.05); }
+        .upload-area input { display: none; }
+        .upload-label { cursor: pointer; color: var(--primary-blue); font-weight: bold; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        .upload-label i { font-size: 3rem; }
+        .settings-group { margin-bottom: 15px; }
+        .settings-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .settings-group select, .settings-group input[type="number"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; }
+
+        /* Game Screen */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--white); padding: 10px 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .score-display { font-size: 1.5rem; font-weight: bold; color: var(--accent-orange); }
+        .progress-container { flex-grow: 1; margin: 0 20px; background: var(--gray-light); height: 10px; border-radius: 5px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary-green); width: 0%; transition: width 0.3s ease; }
+        
+        .timer { font-size: 1.2rem; font-weight: bold; color: var(--error-red); display: flex; align-items: center; gap: 5px; background: rgba(255, 107, 107, 0.1); padding: 5px 15px; border-radius: 20px;}
+        .timer i { animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        .q-type-label { display: inline-block; padding: 5px 12px; background: var(--primary-blue); color: white; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; }
+        .question-text { font-size: 1.3rem; font-weight: 600; margin-bottom: 25px; line-height: 1.5; }
+
+        /* Single Choice Options */
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .option-btn { background: var(--gray-light); border: 2px solid transparent; padding: 15px; border-radius: 10px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 1.1rem; }
+        .option-btn:hover:not(:disabled) { background: #e0e6ed; }
+        .option-btn.selected { border-color: var(--primary-blue); background: rgba(52, 152, 219, 0.1); }
+        .option-btn.correct { background: var(--primary-green); color: white; border-color: var(--dark-green); }
+        .option-btn.wrong { background: var(--error-red); color: white; border-color: #c0392b; }
+
+        /* True False Options */
+        .tf-row { background: var(--gray-light); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .tf-text { font-weight: 600; }
+        .tf-controls { display: flex; gap: 10px; }
+        .tf-btn { flex: 1; padding: 10px; border: 2px solid #ccc; border-radius: 8px; background: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .tf-btn.selected { border-color: var(--primary-blue); background: var(--primary-blue); color: white; }
+        .tf-btn.correct { background: var(--primary-green); border-color: var(--dark-green); color: white; }
+        .tf-btn.wrong { background: var(--error-red); border-color: #c0392b; color: white; }
+
+        .feedback-area { margin-top: 10px; font-size: 0.95rem; font-style: italic; display: none; }
+        .feedback-area.correct-text { color: var(--dark-green); }
+        .feedback-area.wrong-text { color: var(--error-red); }
+
+        .action-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+
+        /* Summary Screen */
+        .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: var(--gray-light); padding: 15px; border-radius: 10px; text-align: center; }
+        .stat-box h4 { margin-bottom: 5px; color: var(--gray-dark); }
+        .stat-box .value { font-size: 1.5rem; font-weight: bold; color: var(--primary-blue); }
+        .badge { display: inline-block; padding: 10px 20px; background: var(--accent-orange); color: white; border-radius: 25px; font-weight: bold; font-size: 1.2rem; margin: 15px 0; box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3); }
+        
+        .wrong-answers-list { margin-top: 20px; text-align: left; max-height: 300px; overflow-y: auto; padding-right: 10px; }
+        .wrong-item { background: #ffeaea; border-left: 4px solid var(--error-red); padding: 15px; margin-bottom: 10px; border-radius: 0 8px 8px 0; }
+        
+        /* Toast Notification */
+        #toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: bold; z-index: 1000; display: none; animation: fadeIn 0.3s; }
+        .toast-success { background: var(--primary-green); }
+        .toast-error { background: var(--error-red); }
+
+        @media (max-width: 600px) {
+            .result-grid { grid-template-columns: 1fr; }
+            .top-bar { flex-wrap: wrap; gap: 10px; }
+            .progress-container { width: 100%; order: 3; margin: 10px 0 0 0; }
+            .tf-controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="toast"></div>
+
+    <!-- MÀN HÌNH CHÍNH -->
+    <div id="home-screen" class="screen active">
+        <div class="card" style="text-align: center; padding: 40px 20px;">
+            <i class="fas fa-microscope" style="font-size: 4rem; color: var(--primary-green); margin-bottom: 20px;"></i>
+            <h1 class="title">BIO QUEST 10</h1>
+            <p class="slogan">Khám phá sự sống – Chinh phục tri thức</p>
+            
+            <div class="player-info" style="margin-bottom: 20px;">
+                <input type="text" id="player-name" placeholder="Nhập họ và tên học sinh" style="padding: 12px; width: 100%; max-width: 300px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; text-align: center;" required>
+                <input type="text" id="player-class" placeholder="Nhập lớp (VD: 10A1)" style="padding: 12px; width: 100%; max-width: 300px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; text-align: center;" required>
+            </div>
+
+            <div class="stats-badge" id="home-stats">
+                <i class="fas fa-database"></i> Dữ liệu: 0 câu hỏi | <i class="fas fa-trophy"></i> Kỷ lục: <span id="high-score-display">0</span> điểm
+            </div>
+
+            <div class="home-menu">
+                <button class="btn btn-green" onclick="startGame()"><i class="fas fa-play"></i> BẮT ĐẦU CHƠI</button>
+                <button class="btn btn-outline" onclick="showScreen('upload-screen')"><i class="fas fa-file-upload"></i> QUẢN LÝ CÂU HỎI</button>
+                <button class="btn btn-outline" onclick="alert('Luật chơi:\n- Chọn 1 đáp án: Đúng +2đ, Sai -2đ.\n- Câu Đúng/Sai: Mỗi nhận định đúng +2đ, sai -2đ.\n- Điểm tối thiểu là 0.')"><i class="fas fa-info-circle"></i> HƯỚNG DẪN CHƠI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH TẢI FILE -->
+    <div id="upload-screen" class="screen">
+        <div class="card">
+            <h2><i class="fas fa-file-upload"></i> Quản lý câu hỏi</h2>
+            <p style="text-margin-bottom: 20px; color: var(--gray-dark);">Bạn có thể tải file hoặc dùng dữ liệu đề cương Sinh học 10 mặc định.</p>
+            
+            <div class="upload-area">
+                <label class="upload-label" for="file-upload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Nhấn vào đây để chọn file từ thiết bị
+                </label>
+                <input type="file" id="file-upload" accept=".xlsx, .xls, .csv, .json" onchange="handleFileUpload(event)">
+            </div>
+            
+            <div id="upload-status" style="margin-bottom: 15px; font-weight: bold;"></div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-orange" onclick="downloadSample()"><i class="fas fa-download"></i> TẢI FILE MẪU (JSON)</button>
+                <button class="btn btn-green" onclick="loadDefaultData()"><i class="fas fa-magic"></i> DÙNG BỘ CÂU HỎI MẶC ĐỊNH</button>
+                <button class="btn btn-outline" onclick="showScreen('home-screen')"><i class="fas fa-arrow-left"></i> QUAY LẠI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH THIẾT LẬP (SETUP) -->
+    <div id="setup-screen" class="screen">
+        <div class="card">
+            <h2><i class="fas fa-cogs"></i> Thiết lập phiên chơi</h2>
+            
+            <div class="settings-group">
+                <label>Chế độ câu hỏi:</label>
+                <select id="setting-mode">
+                    <option value="all">Tất cả câu hỏi</option>
+                    <option value="single">Chỉ câu Trắc nghiệm (1 đáp án)</option>
+                    <option value="true_false">Chỉ câu Đúng - Sai</option>
+                </select>
+            </div>
+            
+            <div class="settings-group">
+                <label>Số lượng câu hỏi (tối đa):</label>
+                <input type="number" id="setting-limit" value="10" min="1">
+            </div>
+            
+            <div class="settings-group">
+                <label>
+                    <input type="checkbox" id="setting-shuffle-q" checked> Trộn ngẫu nhiên thứ tự câu hỏi
+                </label>
+                <br><br>
+                <label>
+                    <input type="checkbox" id="setting-shuffle-o" checked> Trộn ngẫu nhiên thứ tự đáp án (câu trắc nghiệm)
+                </label>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-outline" onclick="loadDefaultData()"><i class="fas fa-magic"></i> DÙNG BỘ CÂU HỎI MẶC ĐỊNH</button>
+                <button class="btn" onclick="showScreen('home-screen')"><i class="fas fa-arrow-left"></i> QUAY LẠI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH CHƠI GAME -->
+    <div id="game-screen" class="screen">
+        <div class="top-bar">
+            <div>
+                <i class="fas fa-star" style="color: var(--accent-orange)"></i> ĐIỂM: <span class="score-display" id="game-score">0</span>
+            </div>
+            <div class="timer" id="timer-display"><i class="fas fa-clock"></i> <span id="time-left">15</span>s</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="game-progress"></div>
+            </div>
+            <div>
+                <span id="game-counter">1/10</span>
+                <button class="btn btn-outline" style="padding: 5px 10px; margin-left: 10px;" onclick="quitGame()"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        <div class="card" id="question-container">
+            <!-- Nội dung câu hỏi sẽ được render bằng JS -->
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-orange" id="btn-confirm" onclick="confirmAnswer()">XÁC NHẬN ĐÁP ÁN</button>
+            <button class="btn btn-green" id="btn-next" onclick="nextQuestion()" style="display: none;">CÂU TIẾP THEO <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH KẾT QUẢ -->
+    <div id="summary-screen" class="screen">
+        <div class="card" style="text-align: center;">
+            <h2><i class="fas fa-chart-pie"></i> TỔNG KẾT KẾT QUẢ</h2>
+            
+            <div id="badge-container"></div>
+            
+            <div class="result-grid">
+                <div class="stat-box">
+                    <h4>Tổng điểm</h4>
+                    <div class="value" id="res-score">0</div>
+                </div>
+                <div class="stat-box">
+                    <h4>Số câu đã làm</h4>
+                    <div class="value" id="res-total">0</div>
+                </div>
+                <div class="stat-box">
+                    <h4>Điểm bị trừ</h4>
+                    <div class="value" style="color: var(--error-red);" id="res-penalty">0</div>
+                </div>
+                <div class="stat-box">
+                    <h4>Trả lời Đúng</h4>
+                    <div class="value" style="color: var(--dark-green);" id="res-correct">0</div>
+                </div>
+                <div class="stat-box">
+                    <h4>Trả lời Sai</h4>
+                    <div class="value" style="color: var(--error-red);" id="res-wrong">0</div>
+                </div>
+            </div>
+
+            <div id="wrong-review-container" style="display: none;">
+                <h3><i class="fas fa-book-open"></i> Ôn tập câu làm sai</h3>
+                <div class="wrong-answers-list" id="wrong-answers-list">
+                    <!-- Render câu sai -->
+                </div>
+            </div>
+
+            <div id="leaderboard-container" class="card" style="margin-top: 30px; background: rgba(243, 156, 18, 0.05); border: 2px solid var(--accent-orange);">
+                <h3><i class="fas fa-trophy" style="color: var(--accent-orange);"></i> BẢNG XẾP HẠNG</h3>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 15px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--gray-dark); color: var(--dark-blue);">
+                            <th style="padding: 10px;">Hạng</th>
+                            <th style="padding: 10px;">Họ Tên</th>
+                            <th style="padding: 10px;">Lớp</th>
+                            <th style="padding: 10px;">Điểm</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Nơi điền bảng xếp hạng -->
+                    </tbody>
+                </table>
+                <button class="btn btn-outline" style="margin-top: 15px; font-size: 0.9rem;" onclick="clearLeaderboard()"><i class="fas fa-trash"></i> XÓA BẢNG XẾP HẠNG (Giáo viên)</button>
+            </div>
+
+            <div class="action-buttons" style="justify-content: center; margin-top: 30px;">
+                <button class="btn btn-outline" onclick="exportCSV()"><i class="fas fa-file-csv"></i> XUẤT KẾT QUẢ</button>
+                <button class="btn btn-orange" onclick="showScreen('home-screen')"><i class="fas fa-redo"></i> CHƠI LẠI</button>
+                <button class="btn" onclick="showScreen('home-screen')"><i class="fas fa-home"></i> TRANG CHỦ</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    let masterQuestions = []; 
+    let currentSessionQueue = [];
+    let currentIndex = 0;
+    
+    let gameState = {
+        playerName: "",
+        playerClass: "",
+        score: 0,
+        correctCount: 0,
+        wrongCount: 0,
+        actionsTaken: 0,
+        wrongQuestions: []
+    };
+
+    // Current interaction state for the active question
+    let currentAnswerState = {
+        singleSelectedId: null,
+        tfSelected: { a: null, b: null, c: null, d: null },
+        tfLocked: { a: false, b: false, c: false, d: false }
+    };
+
+    let timerInterval = null;
+    let timeLeft = 0;
+
+    let highScore = localStorage.getItem('bioQuestHighScore') || 0;
+    document.getElementById('high-score-display').innerText = highScore;
+
+    const defaultDataset = [
+        {
+            "type": "single",
+            "question": "Đối tượng nghiên cứu chính của Sinh học là gì?",
+            "options": [
+                { "id": "A", "text": "Các vật thể vô sinh và các hiện tượng tự nhiên.", "isCorrect": false },
+                { "id": "B", "text": "Thế giới vật chất và năng lượng.", "isCorrect": false },
+                { "id": "C", "text": "Thế giới sống", "isCorrect": true },
+                { "id": "D", "text": "Cấu trúc của Trái Đất và vũ trụ.", "isCorrect": false }
+            ],
+            "explanation": "Sinh học là môn khoa học nghiên cứu về thế giới sống."
+        },
+        {
+            "type": "single",
+            "question": "Mục tiêu cơ bản nhất của việc học tập môn Sinh học là:",
+            "options": [
+                { "id": "A", "text": "Biết cách sử dụng các thiết bị phòng thí nghiệm phức tạp.", "isCorrect": false },
+                { "id": "B", "text": "Hiểu rõ sự hình thành và phát triển của thế giới sống, từ đó hình thành thế giới quan khoa học.", "isCorrect": true },
+                { "id": "C", "text": "Ghi nhớ tên khoa học của tất cả các loài sinh vật.", "isCorrect": false },
+                { "id": "D", "text": "Giải quyết mọi vấn đề về ô nhiễm môi trường.", "isCorrect": false }
+            ],
+            "explanation": "Mục tiêu lớn nhất là hiểu thế giới sống và hình thành thế giới quan khoa học."
+        },
+        {
+            "type": "single",
+            "question": "Việc ứng dụng vi sinh vật để xử lý rác thải hữu cơ thể hiện vai trò nào của Sinh học?",
+            "options": [
+                { "id": "A", "text": "Phát triển y học.", "isCorrect": false },
+                { "id": "B", "text": "Bảo vệ môi trường và phát triển bền vững", "isCorrect": true },
+                { "id": "C", "text": "Tạo ra giống cây trồng mới", "isCorrect": false },
+                { "id": "D", "text": "Cung cấp thực phẩm.", "isCorrect": false }
+            ],
+            "explanation": "Xử lý rác thải gắn liền với vai trò bảo vệ môi trường."
+        },
+        {
+            "type": "single",
+            "question": "Sự kiện nào thể hiện rõ nhất mối quan hệ chặt chẽ giữa các cấp độ tổ chức sống?",
+            "options": [
+                { "id": "A", "text": "Một đàn chim di cư về phương Nam tránh rét.", "isCorrect": false },
+                { "id": "B", "text": "Tế bào rễ cây hấp thụ nước và muối khoáng giúp toàn bộ cây sinh trưởng và phát triển.", "isCorrect": true },
+                { "id": "C", "text": "Sư tử săn mồi trên đồng cỏ nhiệt đới.", "isCorrect": false },
+                { "id": "D", "text": "Vi khuẩn phân giải xác chết động vật trong đất.", "isCorrect": false }
+            ],
+            "explanation": "Hoạt động ở cấp độ tế bào (hấp thụ nước) ảnh hưởng trực tiếp đến cấp độ cơ thể (toàn bộ cây sinh trưởng)."
+        },
+        {
+            "type": "single",
+            "question": "Ngành nghề nào sau đây KHÔNG liên quan trực tiếp đến sinh học?",
+            "options": [
+                { "id": "A", "text": "Bác sĩ thú y.", "isCorrect": false },
+                { "id": "B", "text": "Chuyên gia công nghệ sinh học.", "isCorrect": false },
+                { "id": "C", "text": "Kỹ sư xây dựng cầu đường", "isCorrect": true },
+                { "id": "D", "text": "Kỹ sư nông nghiệp.", "isCorrect": false }
+            ],
+            "explanation": "Kỹ sư xây dựng cầu đường thuộc lĩnh vực kỹ thuật, xây dựng, không liên quan trực tiếp đến sinh học."
+        },
+        {
+            "type": "single",
+            "question": "Học thuyết tế bào khẳng định điều gì?",
+            "options": [
+                { "id": "A", "text": "Mọi sinh vật đều được cấu tạo từ mô.", "isCorrect": false },
+                { "id": "B", "text": "Tế bào là đơn vị cơ sở cấu tạo nên mọi cơ thể sống.", "isCorrect": true },
+                { "id": "C", "text": "Nước là thành phần quan trọng nhất của sự sống.", "isCorrect": false },
+                { "id": "D", "text": "Các nguyên tố hóa học tự tập hợp thành cơ thể sống.", "isCorrect": false }
+            ],
+            "explanation": "Nội dung cơ bản nhất của Học thuyết tế bào là tế bào là đơn vị cơ sở của mọi cơ thể sống."
+        },
+        {
+            "type": "single",
+            "question": "Nguyên tố vi lượng đóng vai trò gì trong tế bào?",
+            "options": [
+                { "id": "A", "text": "Cấu tạo nên các đại phân tử hữu cơ.", "isCorrect": false },
+                { "id": "B", "text": "Là nguồn cung cấp năng lượng chính.", "isCorrect": false },
+                { "id": "C", "text": "Tham gia cấu tạo enzyme, hormone, điều hòa các hoạt động sống.", "isCorrect": true },
+                { "id": "D", "text": "Tạo nên môi trường dung môi của tế bào.", "isCorrect": false }
+            ],
+            "explanation": "Tuy chiếm tỉ lệ rất nhỏ nhưng nguyên tố vi lượng là thành phần không thể thiếu của các enzyme, hormone."
+        },
+        {
+            "type": "single",
+            "question": "Tính chất nào của nước giúp nó trở thành dung môi hòa tan nhiều chất?",
+            "options": [
+                { "id": "A", "text": "Tính liên kết hidro mạnh.", "isCorrect": false },
+                { "id": "B", "text": "Tính phân cực.", "isCorrect": true },
+                { "id": "C", "text": "Nhiệt dung riêng cao", "isCorrect": false },
+                { "id": "D", "text": "Khả năng bay hơi.", "isCorrect": false }
+            ],
+            "explanation": "Do có tính phân cực, nước có thể hút và bao quanh các phân tử phân cực khác hoặc các ion để hòa tan chúng."
+        },
+        {
+            "type": "single",
+            "question": "Tại sao nguyên tố Carbon lại đóng vai trò trung tâm cấu tạo nên sự đa dạng của các đại phân tử hữu cơ?",
+            "options": [
+                { "id": "A", "text": "Vì carbon chiếm tỉ lệ lớn nhất trong tế bào.", "isCorrect": false },
+                { "id": "B", "text": "Vì nguyên tử carbon có khả năng tạo 4 liên kết cộng hóa trị với chính nó và các nguyên tử khác.", "isCorrect": true },
+                { "id": "C", "text": "Vì carbon rất dễ bị oxi hóa.", "isCorrect": false },
+                { "id": "D", "text": "Vì carbon hòa tan tốt trong nước.", "isCorrect": false }
+            ],
+            "explanation": "Với 4 electron hóa trị, Carbon tạo ra bộ khung liên kết cộng hóa trị vô cùng đa dạng."
+        },
+        {
+            "type": "single",
+            "question": "Các nguyên tố nào sau đây là nguyên tố đa lượng (chiếm tỉ lệ lớn)?",
+            "options": [
+                { "id": "A", "text": "C, H, O, N.", "isCorrect": true },
+                { "id": "B", "text": "Fe, Cu, Zn, Mo.", "isCorrect": false },
+                { "id": "C", "text": "I, F, Co, Mn.", "isCorrect": false },
+                { "id": "D", "text": "Au, Ag, Pt, Pb.", "isCorrect": false }
+            ],
+            "explanation": "C, H, O, N chiếm khoảng 96% khối lượng cơ thể sống."
+        },
+        {
+            "type": "single",
+            "question": "Phương pháp nào sau đây là phương pháp thu thập dữ liệu thông qua việc sử dụng các giác quan hoặc dụng cụ hỗ trợ?",
+            "options": [
+                { "id": "A", "text": "Phương pháp quan sát.", "isCorrect": true },
+                { "id": "B", "text": "Phương pháp thực nghiệm.", "isCorrect": false },
+                { "id": "C", "text": "Phương pháp mô hình hóa.", "isCorrect": false },
+                { "id": "D", "text": "Phương pháp phân tích thống kê.", "isCorrect": false }
+            ],
+            "explanation": "Quan sát là sử dụng giác quan và dụng cụ để ghi nhận thông tin."
+        },
+        {
+            "type": "single",
+            "question": "Bước đầu tiên trong tiến trình nghiên cứu khoa học là gì?",
+            "options": [
+                { "id": "A", "text": "Hình thành giả thuyết.", "isCorrect": false },
+                { "id": "B", "text": "Quan sát và đặt câu hỏi.", "isCorrect": true },
+                { "id": "C", "text": "Thiết kế và tiến hành thí nghiệm.", "isCorrect": false },
+                { "id": "D", "text": "Rút ra kết luận.", "isCorrect": false }
+            ],
+            "explanation": "Mọi nghiên cứu đều bắt đầu từ việc quan sát và đặt ra các câu hỏi thắc mắc."
+        },
+        {
+            "type": "single",
+            "question": "Để quan sát cấu tạo của tế bào biểu bì vảy hành, ta cần sử dụng thiết bị nào?",
+            "options": [
+                { "id": "A", "text": "Kính lúp cầm tay.", "isCorrect": false },
+                { "id": "B", "text": "Kính hiển vi quang học.", "isCorrect": true },
+                { "id": "C", "text": "Ống nhòm.", "isCorrect": false },
+                { "id": "D", "text": "Máy li tâm.", "isCorrect": false }
+            ],
+            "explanation": "Kính hiển vi quang học dùng để quan sát các vật thể có kích thước mức độ tế bào."
+        },
+        {
+            "type": "single",
+            "question": "Tại sao trong thí nghiệm sinh học lại cần có lô đối chứng?",
+            "options": [
+                { "id": "A", "text": "Để làm cho thí nghiệm trông phức tạp hơn.", "isCorrect": false },
+                { "id": "B", "text": "Để tiết kiệm hóa chất và mẫu vật.", "isCorrect": false },
+                { "id": "C", "text": "Để so sánh kết quả và khẳng định sự thay đổi ở lô thí nghiệm là do nhân tố tác động gây ra.", "isCorrect": true },
+                { "id": "D", "text": "Để tăng số lượng dữ liệu thu thập được.", "isCorrect": false }
+            ],
+            "explanation": "Lô đối chứng đóng vai trò làm hệ quy chiếu để so sánh với lô thực nghiệm."
+        },
+        {
+            "type": "single",
+            "question": "Ngành khoa học kết hợp giữa sinh học, khoa học máy tính và công nghệ thông tin để lưu trữ, phân tích dữ liệu sinh học được gọi là gì?",
+            "options": [
+                { "id": "A", "text": "Công nghệ sinh học.", "isCorrect": false },
+                { "id": "B", "text": "Y sinh học.", "isCorrect": false },
+                { "id": "C", "text": "Sinh học phân tử.", "isCorrect": false },
+                { "id": "D", "text": "Tin sinh học.", "isCorrect": true }
+            ],
+            "explanation": "Đó chính là định nghĩa của Tin sinh học (Bioinformatics)."
+        },
+        {
+            "type": "single",
+            "question": "Cấp độ tổ chức cơ bản nhất của thế giới sống là gì?",
+            "options": [
+                { "id": "A", "text": "Tế bào.", "isCorrect": true },
+                { "id": "B", "text": "Cơ quan.", "isCorrect": false },
+                { "id": "C", "text": "Quần thể.", "isCorrect": false },
+                { "id": "D", "text": "Phân tử.", "isCorrect": false }
+            ],
+            "explanation": "Tế bào là đơn vị tổ chức cơ bản có biểu hiện đầy đủ các đặc tính của sự sống."
+        },
+        {
+            "type": "single",
+            "question": "Hệ thống mở trong thế giới sống được hiểu là:",
+            "options": [
+                { "id": "A", "text": "Sinh vật luôn di chuyển từ nơi này sang nơi khác.", "isCorrect": false },
+                { "id": "B", "text": "Sinh vật không ngừng trao đổi vật chất và năng lượng với môi trường.", "isCorrect": true },
+                { "id": "C", "text": "Sinh vật có khả năng tiến hóa liên tục.", "isCorrect": false },
+                { "id": "D", "text": "Sinh vật có cấu tạo phức tạp.", "isCorrect": false }
+            ],
+            "explanation": "Hệ mở là hệ thống luôn có sự trao đổi chất, năng lượng và thông tin với môi trường bên ngoài."
+        },
+        {
+            "type": "single",
+            "question": "Rừng nhiệt đới Amazon là ví dụ cho cấp độ tổ chức sống nào?",
+            "options": [
+                { "id": "A", "text": "Quần thể.", "isCorrect": false },
+                { "id": "B", "text": "Quần xã - Hệ sinh thái.", "isCorrect": true },
+                { "id": "C", "text": "Sinh quyển.", "isCorrect": false },
+                { "id": "D", "text": "Cơ thể.", "isCorrect": false }
+            ],
+            "explanation": "Rừng Amazon bao gồm nhiều quần thể sinh vật tương tác với nhau và với môi trường tạo thành một hệ sinh thái."
+        },
+        {
+            "type": "single",
+            "question": "Cấp độ tổ chức sống là gì?",
+            "options": [
+                { "id": "A", "text": "Là tập hợp tất cả các loài sinh vật trên Trái Đất.", "isCorrect": false },
+                { "id": "B", "text": "Là sự phân loại các nhóm sinh vật theo hình thái.", "isCorrect": false },
+                { "id": "C", "text": "Là môi trường sống của các loài sinh vật.", "isCorrect": false },
+                { "id": "D", "text": "Là cấp độ tổ chức có biểu hiện đầy đủ các đặc trưng của sự sống.", "isCorrect": true }
+            ],
+            "explanation": "Cấp độ tổ chức sống là các cấp độ biểu hiện những đặc trưng cơ bản của sự sống như chuyển hóa, sinh trưởng, sinh sản."
+        },
+        {
+            "type": "single",
+            "question": "Đơn phân cấu tạo nên nucleic acid là gì?",
+            "options": [
+                { "id": "A", "text": "Monosaccharide.", "isCorrect": false },
+                { "id": "B", "text": "Nucleotide.", "isCorrect": true },
+                { "id": "C", "text": "Amino acid.", "isCorrect": false },
+                { "id": "D", "text": "Acid béo và glycerol.", "isCorrect": false }
+            ],
+            "explanation": "Nucleic acid (DNA, RNA) là các đại phân tử được cấu tạo từ các đơn phân là Nucleotide."
+        },
+        {
+            "type": "single",
+            "question": "Loại nucleic acid nào có chức năng lưu trữ và truyền đạt thông tin di truyền ở sinh vật nhân thực?",
+            "options": [
+                { "id": "A", "text": "mARN.", "isCorrect": false },
+                { "id": "B", "text": "tARN.", "isCorrect": false },
+                { "id": "C", "text": "rARN.", "isCorrect": false },
+                { "id": "D", "text": "ADN.", "isCorrect": true }
+            ],
+            "explanation": "DNA (ADN) đóng vai trò lưu trữ, bảo quản và truyền đạt thông tin di truyền."
+        },
+        {
+            "type": "single",
+            "question": "Đơn phân cấu tạo nên protein là gì?",
+            "options": [
+                { "id": "A", "text": "Monosaccharide.", "isCorrect": false },
+                { "id": "B", "text": "Nucleotide.", "isCorrect": false },
+                { "id": "C", "text": "Amino acid.", "isCorrect": true },
+                { "id": "D", "text": "Acid béo và glycerol.", "isCorrect": false }
+            ],
+            "explanation": "Protein được cấu tạo từ hàng loạt các đơn phân là Amino acid (Axit amin)."
+        },
+        {
+            "type": "single",
+            "question": "Phospholipid có vai trò chính là gì?",
+            "options": [
+                { "id": "A", "text": "Dự trữ năng lượng.", "isCorrect": false },
+                { "id": "B", "text": "Cấu tạo nên màng sinh chất của tế bào.", "isCorrect": true },
+                { "id": "C", "text": "Cấu tạo nên thành tế bào, tạo độ cứng chắc", "isCorrect": false },
+                { "id": "D", "text": "Xúc tác các phản ứng sinh hóa.", "isCorrect": false }
+            ],
+            "explanation": "Phospholipid với cấu trúc lớp kép phân tử là thành phần chính cấu tạo nên màng sinh chất."
+        },
+        {
+            "type": "single",
+            "question": "Hiện tượng thịt đông lại khi luộc chín là do sự thay đổi cấu trúc của đại phân tử nào?",
+            "options": [
+                { "id": "A", "text": "Carbohydrate bị thủy phân.", "isCorrect": false },
+                { "id": "B", "text": "Protein bị biến tính do nhiệt độ cao.", "isCorrect": true },
+                { "id": "C", "text": "Lipid bị nhũ tương hóa", "isCorrect": false },
+                { "id": "D", "text": "Nucleic acid bị đứt gãy.", "isCorrect": false }
+            ],
+            "explanation": "Nhiệt độ cao làm phá vỡ cấu trúc không gian của protein, gây ra hiện tượng biến tính và đông tụ."
+        },
+        {
+            "type": "single",
+            "question": "Loại carbohydrate nào sau đây thuộc nhóm đường đơn (monosaccharide)?",
+            "options": [
+                { "id": "A", "text": "Glucose.", "isCorrect": true },
+                { "id": "B", "text": "Sucrose.", "isCorrect": false },
+                { "id": "C", "text": "Cellulose.", "isCorrect": false },
+                { "id": "D", "text": "Glycogen.", "isCorrect": false }
+            ],
+            "explanation": "Glucose là một đường đơn 6 carbon tiêu biểu cung cấp năng lượng trực tiếp cho tế bào."
+        },
+        {
+            "type": "true_false",
+            "question": "Dựa vào kiến thức về các cấp độ tổ chức sống và phương pháp nghiên cứu, hãy xác định các nhận định sau đây đúng hay sai?",
+            "statements": [
+                { "id": "a", "text": "Quần xã là tập hợp các cá thể cùng loài sống trong một khu vực địa lý xác định.", "answer": false, "exp": "Quần xã là tập hợp các quần thể khác loài. Cùng loài phải là Quần thể." },
+                { "id": "b", "text": "Tế bào, cơ thể, quần thể, quần xã, hệ sinh thái là các cấp độ tổ chức sống cơ bản.", "answer": true, "exp": "Đây là 5 cấp độ cơ bản nhất theo lý thuyết Sinh học 10." },
+                { "id": "c", "text": "Việc lạm dụng thuốc trừ sâu hóa học trong nông nghiệp là một hành động đi ngược lại nguyên tắc phát triển bền vững.", "answer": true, "exp": "Lạm dụng thuốc trừ sâu hóa học gây ô nhiễm môi trường, phá vỡ cân bằng sinh thái." },
+                { "id": "d", "text": "Sinh học không có vai trò gì trong việc giải quyết các vấn đề toàn cầu như biến đổi khí hậu hay dịch bệnh.", "answer": false, "exp": "Sinh học có vai trò rất lớn trong bảo vệ môi trường và giải quyết dịch bệnh." }
+            ]
+        },
+        {
+            "type": "true_false",
+            "question": "Khi nói về các thành tựu, phương pháp nghiên cứu và quy định an toàn, các nhận định sau là đúng hay sai?",
+            "statements": [
+                { "id": "a", "text": "Thành tựu giải mã hệ gen người là một minh chứng cho sự phát triển vượt bậc của sinh học và mở ra triển vọng lớn cho y học cá thể hóa.", "answer": true, "exp": "Đây là một trong những thành tựu vĩ đại nhất của sinh học phân tử." },
+                { "id": "b", "text": "Kính hiển vi điện tử có độ phóng đại nhỏ hơn kính hiển vi quang học.", "answer": false, "exp": "Kính hiển vi điện tử có độ phóng đại lớn hơn rất nhiều lần." },
+                { "id": "c", "text": "Giả thuyết khoa học là một lời giải thích tạm thời cho một hiện tượng và có thể kiểm chứng được bằng thực nghiệm.", "answer": true, "exp": "Giả thuyết luôn cần kiểm chứng qua thực nghiệm." },
+                { "id": "d", "text": "Khi làm việc trong phòng thí nghiệm, việc đeo kính bảo hộ và áo blouse là không bắt buộc nếu chỉ quan sát tiêu bản đã làm sẵn.", "answer": true, "exp": "Theo đáp án trong đề cương cung cấp." }
+            ]
+        },
+        {
+            "type": "true_false",
+            "question": "Về đặc điểm và mối quan hệ giữa các cấp độ tổ chức sống, nhận định nào dưới đây đúng, nhận định nào sai?",
+            "statements": [
+                { "id": "a", "text": "Tin sinh học chỉ hữu ích trong việc phân tích cấu trúc ADN, không có ứng dụng trong nghiên cứu protein.", "answer": false, "exp": "Tin sinh học còn ứng dụng mạnh mẽ để mô phỏng cấu trúc protein." },
+                { "id": "b", "text": "Trong khi học tập về quá trình quang hợp ở thực vật, học sinh có thể sử dụng các phương pháp: quan sát, phòng thí nghiệm và thực nghiệm khoa học.", "answer": true, "exp": "Đây là các phương pháp học tập điển hình." },
+                { "id": "c", "text": "Các cấp độ tổ chức sống cơ bản bao gồm: Tế bào, Cơ thể, Quần thể, Quần xã - Hệ sinh thái.", "answer": true, "exp": "Hoàn toàn chính xác." },
+                { "id": "d", "text": "Các cấp độ tổ chức sống hoạt động như những hệ thống kín, hoàn toàn độc lập và không có sự trao đổi chất với môi trường ngoài.", "answer": false, "exp": "Các cấp độ tổ chức sống luôn là hệ thống mở." }
+            ]
+        },
+        {
+            "type": "true_false",
+            "question": "Phân tích các ví dụ và đặc điểm hóa học của các cấp độ tổ chức và phân tử nước:",
+            "statements": [
+                { "id": "a", "text": "Một con ong thợ đang hút mật hoa là đại diện cho cấp độ tổ chức quần thể.", "answer": false, "exp": "Một con ong chỉ là cấp độ cơ thể cá thể." },
+                { "id": "b", "text": "Sự trao đổi chất chỉ diễn ra ở cấp độ tế bào, không diễn ra ở các cấp độ cao hơn như cơ thể hay hệ sinh thái.", "answer": false, "exp": "Sự trao đổi chất (vật chất, năng lượng) có ở mọi cấp độ." },
+                { "id": "c", "text": "Khi môi trường ô nhiễm, số lượng cá thể suy giảm, kéo theo mất cân bằng hệ sinh thái. Điều này chứng minh các cấp độ tổ chức sống có liên hệ thứ bậc và ảnh hưởng qua lại.", "answer": true, "exp": "Cấp độ dưới thay đổi sẽ ảnh hưởng lên cấp độ cao hơn." },
+                { "id": "d", "text": "Phân tử nước được cấu tạo từ 2 nguyên tử Oxygen và 1 nguyên tử Hydrogen.", "answer": false, "exp": "Ngược lại, nước là H2O (2 nguyên tử Hydrogen và 1 nguyên tử Oxygen)." }
+            ]
+        },
+        {
+            "type": "true_false",
+            "question": "Vai trò của nước và carbohydrate trong tế bào được mô tả qua các nhận định sau đây, đúng hay sai?",
+            "statements": [
+                { "id": "a", "text": "Liên kết hydro giữa các phân tử nước tạo ra sức căng bề mặt và giúp nước có nhiệt dung riêng cao.", "answer": true, "exp": "Đây là tính chất vật lý rất quan trọng của nước." },
+                { "id": "b", "text": "Hiện tượng thịt cua, ghẹ đông tụ lại thành từng mảng khi đun sôi là do sự biến tính của phân tử protein dưới tác dụng của nhiệt độ cao.", "answer": true, "exp": "Nhiệt độ làm protein mất cấu trúc không gian." },
+                { "id": "c", "text": "Nước không tham gia vào bất kỳ phản ứng sinh hóa nào trong tế bào, nó chỉ làm dung môi.", "answer": false, "exp": "Nước trực tiếp tham gia vào các phản ứng thủy phân." },
+                { "id": "d", "text": "Carbohydrate là các hợp chất hữu cơ được cấu tạo chủ yếu từ 3 nguyên tố C, H, O.", "answer": true, "exp": "Công thức chung của Carbohydrate thường là (CH2O)n." }
+            ]
+        },
+        {
+            "type": "true_false",
+            "question": "Đánh giá các nhận định liên quan đến các đại phân tử sinh học (Carbohydrate, Protein, Lipid):",
+            "statements": [
+                { "id": "a", "text": "Tinh bột và glycogen đều là các polysaccharide dự trữ năng lượng.", "answer": true, "exp": "Tinh bột dự trữ ở thực vật, glycogen dự trữ ở động vật." },
+                { "id": "b", "text": "Chức năng của một protein phụ thuộc chặt chẽ vào cấu trúc không gian 3 chiều của nó.", "answer": true, "exp": "Chỉ khi cuộn gập thành cấu trúc 3D thì protein mới có hoạt tính." },
+                { "id": "c", "text": "Người mắc bệnh tiểu đường cần hạn chế tối đa protein và lipid, nhưng có thể ăn thoải mái carbohydrate.", "answer": false, "exp": "Bệnh tiểu đường cần kiểm soát chặt chẽ carbohydrate (đường, tinh bột)." },
+                { "id": "d", "text": "Mọi loại lipid đều gây hại cho sức khỏe con người và cần loại bỏ hoàn toàn khỏi khẩu phần ăn.", "answer": false, "exp": "Lipid vô cùng quan trọng (cấu tạo màng, dự trữ năng lượng). Chỉ các loại chất béo xấu mới gây hại." }
+            ]
+        },
+        {
+            "type": "true_false",
+            "question": "Hãy cho biết những nhận định bổ sung sau đây về Enzyme và thành phần tế bào là đúng hay sai?",
+            "statements": [
+                { "id": "a", "text": "Tất cả các enzyme xúc tác phản ứng trong cơ thể đều có bản chất là lipid.", "answer": false, "exp": "Hầu hết các enzyme đều có bản chất là protein." },
+                { "id": "b", "text": "DNA là đại phân tử được cấu tạo theo nguyên tắc đa phân.", "answer": true, "exp": "Đơn phân của DNA là các Nucleotide." },
+                { "id": "c", "text": "RNA thường có cấu trúc chuỗi xoắn kép.", "answer": false, "exp": "RNA thường có cấu trúc mạch đơn, DNA mới là xoắn kép." },
+                { "id": "d", "text": "Cellulose là thành phần chính cấu tạo nên thành tế bào thực vật.", "answer": true, "exp": "Các vi sợi cellulose tạo nên lớp thành cứng chắc bảo vệ tế bào thực vật." }
+            ]
+        }
+    ];
+
+    // Load default dataset immediately on startup
+    window.onload = function() {
+        masterQuestions = JSON.parse(JSON.stringify(defaultDataset));
+        document.getElementById('home-stats').innerHTML = `<i class="fas fa-database"></i> Dữ liệu: ${masterQuestions.length} câu hỏi | <i class="fas fa-trophy"></i> Kỷ lục: ${highScore} điểm`;
+    };
+
+    // --- STREAMING_CHUNK:Navigation and UI Helpers ---
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        if (screenId === 'home-screen') {
+            document.getElementById('home-stats').innerHTML = `<i class="fas fa-database"></i> Dữ liệu: ${masterQuestions.length} câu hỏi | <i class="fas fa-trophy"></i> Kỷ lục: ${highScore} điểm`;
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.className = type === 'success' ? 'toast-success' : 'toast-error';
+        toast.innerHTML = type === 'success' ? `<i class="fas fa-check-circle"></i> ${message}` : `<i class="fas fa-times-circle"></i> ${message}`;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    function shuffleArray(array) {
+        let newArr = [...array];
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        }
+        return newArr;
+    }
+
+    // --- STREAMING_CHUNK:Handling file uploads and dataset selection ---
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                let parsedData = [];
+                if (ext === 'json') {
+                    parsedData = JSON.parse(e.target.result);
+                } else if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonFromExcel = XLSX.utils.sheet_to_json(firstSheet);
+                    parsedData = formatExcelData(jsonFromExcel);
+                } else {
+                    throw new Error("Định dạng file không được hỗ trợ.");
+                }
+
+                if (validateQuestions(parsedData)) {
+                    masterQuestions = parsedData;
+                    document.getElementById('upload-status').innerHTML = `<span style="color:var(--dark-green)">Tải thành công ${masterQuestions.length} câu hỏi hợp lệ!</span>`;
+                    showToast(`Tải xong ${masterQuestions.length} câu hỏi.`);
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('upload-status').innerHTML = `<span style="color:var(--error-red)">Lỗi khi đọc file: ${error.message}</span>`;
+            }
+        };
+
+        if (ext === 'xlsx' || ext === 'xls') {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file);
+        }
+    }
+
+    function formatExcelData(data) {
+        let formatted = [];
+        data.forEach((row, index) => {
+            if (!row.type) return;
+            if (row.type.toLowerCase() === 'single') {
+                formatted.push({
+                    type: 'single',
+                    question: row.question,
+                    options: [
+                        { id: 'A', text: row.A, isCorrect: String(row.answer).toUpperCase() === 'A' },
+                        { id: 'B', text: row.B, isCorrect: String(row.answer).toUpperCase() === 'B' },
+                        { id: 'C', text: row.C, isCorrect: String(row.answer).toUpperCase() === 'C' },
+                        { id: 'D', text: row.D, isCorrect: String(row.answer).toUpperCase() === 'D' }
+                    ],
+                    explanation: row.explanation || ''
+                });
+            } else if (row.type.toLowerCase() === 'true_false') {
+                formatted.push({
+                    type: 'true_false',
+                    question: row.question,
+                    statements: [
+                        { id: 'a', text: row.a, answer: String(row.answer_a).toLowerCase() === 'true', exp: row.explanation_a || '' },
+                        { id: 'b', text: row.b, answer: String(row.answer_b).toLowerCase() === 'true', exp: row.explanation_b || '' },
+                        { id: 'c', text: row.c, answer: String(row.answer_c).toLowerCase() === 'true', exp: row.explanation_c || '' },
+                        { id: 'd', text: row.d, answer: String(row.answer_d).toLowerCase() === 'true', exp: row.explanation_d || '' }
+                    ]
+                });
+            }
+        });
+        return formatted;
+    }
+
+    function validateQuestions(data) {
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new Error("File không chứa dữ liệu câu hỏi.");
+        }
+        return true;
+    }
+
+    function loadDefaultData() {
+        masterQuestions = JSON.parse(JSON.stringify(defaultDataset));
+        document.getElementById('upload-status').innerHTML = `<span style="color:var(--dark-green)">Đã tải lại ${masterQuestions.length} câu hỏi mặc định.</span>`;
+        showToast("Đã kích hoạt dữ liệu mặc định.");
+    }
+
+    function downloadSample() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(defaultDataset, null, 4));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", "bio_quest_sample.json");
+        dlAnchorElem.click();
+    }
+
+    // --- GAME ENGINE ---
+    function startGame() {
+        const pName = document.getElementById('player-name').value.trim();
+        const pClass = document.getElementById('player-class').value.trim();
+
+        if (!pName || !pClass) {
+            showToast("Vui lòng nhập đầy đủ Họ Tên và Lớp trước khi bắt đầu!", "error");
+            return;
+        }
+
+        gameState.playerName = pName;
+        gameState.playerClass = pClass;
+
+        if (masterQuestions.length === 0) {
+            alert("Vui lòng tải file câu hỏi hoặc dùng bộ câu hỏi mẫu trước khi bắt đầu!");
+            showScreen('upload-screen');
+            return;
+        }
+
+        // Bỏ qua Setup Screen, dùng mặc định: Tất cả câu hỏi, trộn câu hỏi, trộn đáp án
+        let pool = [...masterQuestions];
+        pool = shuffleArray(pool); // Trộn câu hỏi
+
+        // Số lượng câu hỏi (toàn bộ)
+        currentSessionQueue = pool;
+
+        // Trộn phương án trả lời cho các câu trắc nghiệm
+        currentSessionQueue = JSON.parse(JSON.stringify(currentSessionQueue));
+        currentSessionQueue.forEach(q => {
+            if (q.type === 'single') {
+                q.options = shuffleArray(q.options);
+            }
+        });
+
+        // Init State
+        gameState.score = 0;
+        gameState.correctCount = 0;
+        gameState.wrongCount = 0;
+        gameState.actionsTaken = 0;
+        gameState.wrongQuestions = [];
+        currentIndex = 0;
+        clearInterval(timerInterval);
+        
+        updateScoreBoard();
+        showScreen('game-screen');
+        renderQuestion();
+    }
+
+    function updateScoreBoard() {
+        document.getElementById('game-score').innerText = gameState.score;
+        document.getElementById('game-counter').innerText = `${currentIndex + 1}/${currentSessionQueue.length}`;
+        const pct = ((currentIndex) / currentSessionQueue.length) * 100;
+        document.getElementById('game-progress').style.width = `${pct}%`;
+    }
+
+    // --- STREAMING_CHUNK:Rendering UI for questions ---
+    function renderQuestion() {
+        const q = currentSessionQueue[currentIndex];
+        const container = document.getElementById('question-container');
+        
+        // Reset answer state
+        currentAnswerState = {
+            singleSelectedId: null,
+            tfSelected: { a: null, b: null, c: null, d: null },
+            tfLocked: { a: false, b: false, c: false, d: false }
+        };
+
+        let html = '';
+        if (q.type === 'single') {
+            html += `<div class="q-type-label"><i class="fas fa-list-ul"></i> TRẮC NGHIỆM 1 ĐÁP ÁN</div>`;
+            html += `<div class="question-text">${q.question}</div>`;
+            html += `<div class="options-grid" id="options-area">`;
+            q.options.forEach(opt => {
+                html += `<button class="option-btn" id="opt-${opt.id}" onclick="selectSingleOption('${opt.id}')">${opt.text}</button>`;
+            });
+            html += `</div>`;
+            html += `<div class="feedback-area" id="q-feedback"></div>`;
+        } else if (q.type === 'true_false') {
+            html += `<div class="q-type-label" style="background: var(--dark-green)"><i class="fas fa-check-double"></i> ĐÚNG - SAI</div>`;
+            html += `<div class="tf-container">`;
+            q.statements.forEach(stmt => {
+                html += `
+                <div class="tf-row" id="row-${stmt.id}">
+                    <div class="tf-text">${stmt.text}</div>
+                    <div class="tf-controls">
+                        <button class="tf-btn" id="btn-true-${stmt.id}" onclick="selectTF('${stmt.id}', true)">ĐÚNG</button>
+                        <button class="tf-btn" id="btn-false-${stmt.id}" onclick="selectTF('${stmt.id}', false)">SAI</button>
+                    </div>
+                    <div class="feedback-area" id="fb-${stmt.id}"></div>
+                </div>`;
+            });
+            html += `</div>`;
+        }
+
+        container.innerHTML = html;
+        document.getElementById('btn-confirm').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'none';
+        
+        // Timer Logic
+        clearInterval(timerInterval);
+        timeLeft = q.type === 'single' ? 15 : 30;
+        document.getElementById('time-left').innerText = timeLeft;
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('time-left').innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                handleTimeOut();
+            }
+        }, 1000);
+
+        updateScoreBoard();
+    }
+
+    // --- STREAMING_CHUNK:Handling time out ---
+    function handleTimeOut() {
+        showToast("HẾT GIỜ!", "error");
+        const q = currentSessionQueue[currentIndex];
+        
+        if (q.type === 'single') {
+            if (!currentAnswerState.locked) {
+                currentAnswerState.locked = true;
+                const correctOpt = q.options.find(o => o.isCorrect);
+                if (correctOpt) document.getElementById(`opt-${correctOpt.id}`).classList.add('correct');
+                
+                addScore(-2);
+                const fb = document.getElementById('q-feedback');
+                fb.style.display = 'block';
+                fb.className = "feedback-area wrong-text";
+                fb.innerHTML = `<strong>Hết giờ! -2 điểm. Giải thích:</strong> ${q.explanation || 'Không có giải thích.'}`;
+                gameState.wrongCount++;
+                gameState.wrongQuestions.push({...q, userWrong: true});
+                
+                document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+            }
+        } else if (q.type === 'true_false') {
+            let currentWrong = false;
+            q.statements.forEach(stmt => {
+                if (!currentAnswerState.tfLocked[stmt.id]) {
+                    currentAnswerState.tfLocked[stmt.id] = true;
+                    const btnTrue = document.getElementById(`btn-true-${stmt.id}`);
+                    const btnFalse = document.getElementById(`btn-false-${stmt.id}`);
+                    const fb = document.getElementById(`fb-${stmt.id}`);
+                    
+                    btnTrue.disabled = true;
+                    btnFalse.disabled = true;
+                    
+                    addScore(-2);
+                    fb.style.display = 'block';
+                    fb.className = "feedback-area wrong-text";
+                    fb.innerHTML = `Hết giờ! Bỏ lỡ -2đ. Đáp án là ${stmt.answer ? 'ĐÚNG' : 'SAI'}. ${stmt.exp || ''}`;
+                    gameState.wrongCount++;
+                    currentWrong = true;
+                }
+            });
+            if(currentWrong) {
+                if(!gameState.wrongQuestions.some(wq => wq.question === q.question)) {
+                     gameState.wrongQuestions.push(q);
+                }
+            }
+        }
+        
+        updateScoreBoard();
+        document.getElementById('btn-confirm').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'block';
+    }
+
+    // --- STREAMING_CHUNK:Handling user answers and point logic ---
+    function selectSingleOption(id) {
+        if (currentAnswerState.locked) return; // if already confirmed
+        currentAnswerState.singleSelectedId = id;
+        
+        // UI update
+        document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+        document.getElementById(`opt-${id}`).classList.add('selected');
+    }
+
+    function selectTF(stmtId, value) {
+        if (currentAnswerState.tfLocked[stmtId]) return;
+        currentAnswerState.tfSelected[stmtId] = value;
+        
+        // UI update
+        document.getElementById(`btn-true-${stmtId}`).classList.remove('selected');
+        document.getElementById(`btn-false-${stmtId}`).classList.remove('selected');
+        
+        if (value === true) {
+            document.getElementById(`btn-true-${stmtId}`).classList.add('selected');
+        } else {
+            document.getElementById(`btn-false-${stmtId}`).classList.add('selected');
+        }
+    }
+
+    function confirmAnswer() {
+        const q = currentSessionQueue[currentIndex];
+        let isFullyCompleted = false;
+
+        if (q.type === 'single') {
+            if (!currentAnswerState.singleSelectedId) {
+                showToast("Vui lòng chọn một đáp án!", "error");
+                return;
+            }
+            
+            currentAnswerState.locked = true;
+            isFullyCompleted = true;
+            
+            const selectedOpt = q.options.find(o => o.id === currentAnswerState.singleSelectedId);
+            const isCorrect = selectedOpt.isCorrect;
+            
+            // UI Color
+            const btn = document.getElementById(`opt-${selectedOpt.id}`);
+            const fb = document.getElementById('q-feedback');
+            fb.style.display = 'block';
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                addScore(2);
+                showToast("CHÍNH XÁC! +2 ĐIỂM", "success");
+                fb.className = "feedback-area correct-text";
+                fb.innerHTML = `<strong>Giải thích:</strong> ${q.explanation || 'Đúng.'}`;
+                fireConfetti();
+                gameState.correctCount++;
+            } else {
+                btn.classList.add('wrong');
+                // Highlight correct answer
+                const correctOpt = q.options.find(o => o.isCorrect);
+                document.getElementById(`opt-${correctOpt.id}`).classList.add('correct');
+                
+                addScore(-2);
+                showToast("CHƯA CHÍNH XÁC! -2 ĐIỂM", "error");
+                fb.className = "feedback-area wrong-text";
+                fb.innerHTML = `<strong>Giải thích:</strong> ${q.explanation || 'Không có giải thích.'}`;
+                gameState.wrongCount++;
+                gameState.wrongQuestions.push({...q, userWrong: true});
+            }
+            
+            // Disable buttons
+            document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+        } else if (q.type === 'true_false') {
+            let processedAny = false;
+            let allLocked = true;
+            let currentWrong = false;
+
+            q.statements.forEach(stmt => {
+                const selectedVal = currentAnswerState.tfSelected[stmt.id];
+                const isLocked = currentAnswerState.tfLocked[stmt.id];
+                
+                if (selectedVal !== null && !isLocked) {
+                    processedAny = true;
+                    currentAnswerState.tfLocked[stmt.id] = true; // Lock it
+                    
+                    const isCorrect = (selectedVal === stmt.answer);
+                    const btnTrue = document.getElementById(`btn-true-${stmt.id}`);
+                    const btnFalse = document.getElementById(`btn-false-${stmt.id}`);
+                    const fb = document.getElementById(`fb-${stmt.id}`);
+                    
+                    btnTrue.disabled = true;
+                    btnFalse.disabled = true;
+                    fb.style.display = 'block';
+
+                    if (isCorrect) {
+                        addScore(2);
+                        if(selectedVal) btnTrue.classList.add('correct');
+                        else btnFalse.classList.add('correct');
+                        fb.className = "feedback-area correct-text";
+                        fb.innerHTML = `Đúng! +2đ. ${stmt.exp || ''}`;
+                        gameState.correctCount++;
+                    } else {
+                        addScore(-2);
+                        if(selectedVal) btnTrue.classList.add('wrong');
+                        else btnFalse.classList.add('wrong');
+                        fb.className = "feedback-area wrong-text";
+                        fb.innerHTML = `Sai! -2đ. Đáp án là ${stmt.answer ? 'ĐÚNG' : 'SAI'}. ${stmt.exp || ''}`;
+                        gameState.wrongCount++;
+                        currentWrong = true;
+                    }
+                }
+                
+                // Check if still missing
+                if (currentAnswerState.tfSelected[stmt.id] === null) {
+                    allLocked = false;
+                }
+            });
+
+            if (!processedAny) {
+                showToast("Vui lòng chọn Đúng/Sai cho ít nhất 1 nhận định chưa khóa!", "error");
+                return;
+            } else {
+                showToast("Đã ghi nhận các đáp án mới xác nhận.");
+                if(currentWrong) {
+                    if(!gameState.wrongQuestions.some(wq => wq.question === q.question)) {
+                         gameState.wrongQuestions.push(q);
+                    }
+                } else {
+                    fireConfetti();
+                }
+            }
+
+            isFullyCompleted = allLocked;
+        }
+
+        updateScoreBoard();
+
+        if (isFullyCompleted) {
+            clearInterval(timerInterval);
+            document.getElementById('btn-confirm').style.display = 'none';
+            document.getElementById('btn-next').style.display = 'block';
+        }
+    }
+
+    function addScore(change) {
+        gameState.score += change;
+        if (gameState.score < 0) gameState.score = 0; // Prevent negative score
+        gameState.actionsTaken++;
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex >= currentSessionQueue.length) {
+            endGame();
+        } else {
+            renderQuestion();
+        }
+    }
+
+    function quitGame() {
+        if(confirm("Bạn có chắc muốn kết thúc bài ôn tập tại đây? Điểm sẽ được tổng kết.")) {
+            endGame();
+        }
+    }
+
+    // --- STREAMING_CHUNK:Final Summary and Confetti Effects ---
+    function endGame() {
+        // Update High Score
+        if (gameState.score > highScore) {
+            highScore = gameState.score;
+            localStorage.setItem('bioQuestHighScore', highScore);
+        }
+
+        // Render Summary
+        document.getElementById('res-score').innerText = gameState.score;
+        document.getElementById('res-total').innerText = currentSessionQueue.length;
+        document.getElementById('res-penalty').innerText = `-${gameState.wrongCount * 2}`;
+        document.getElementById('res-correct').innerText = gameState.correctCount;
+        document.getElementById('res-wrong').innerText = gameState.wrongCount;
+
+        // Badge Logic
+        let pct = 0;
+        if(gameState.actionsTaken > 0) {
+            pct = gameState.correctCount / gameState.actionsTaken;
+        }
+        let badgeText = "Nhà khám phá sinh học";
+        if (pct >= 0.9 && gameState.score > 0) badgeText = "Nhà khoa học xuất sắc 🏆";
+        else if (pct >= 0.7) badgeText = "Bậc thầy sinh học 🥇";
+        else if (pct >= 0.5) badgeText = "Chuyên gia tế bào 🔬";
+
+        document.getElementById('badge-container').innerHTML = `<div class="badge">${badgeText}</div>`;
+
+        // Render Wrong Answers
+        const wContainer = document.getElementById('wrong-review-container');
+        const wList = document.getElementById('wrong-answers-list');
+        if (gameState.wrongQuestions.length > 0) {
+            wContainer.style.display = 'block';
+            let wHtml = '';
+            gameState.wrongQuestions.forEach((q, idx) => {
+                wHtml += `<div class="wrong-item"><strong>Câu:</strong> ${q.question}<br>`;
+                if (q.type === 'single') {
+                    const corr = q.options.find(o => o.isCorrect);
+                    wHtml += `<span style="color:var(--dark-green)"><strong>Đáp án đúng:</strong> ${corr ? corr.text : ''}</span><br>`;
+                    if(q.explanation) wHtml += `<em>Giải thích: ${q.explanation}</em>`;
+                } else {
+                    wHtml += `<em>Xem lại lý thuyết câu Đúng/Sai này.</em>`;
+                }
+                wHtml += `</div>`;
+            });
+            wList.innerHTML = wHtml;
+        } else {
+            wContainer.style.display = 'none';
+        }
+
+        // Progress bar 100%
+        document.getElementById('game-progress').style.width = `100%`;
+        
+        // Cập nhật Bảng xếp hạng
+        let lb = JSON.parse(localStorage.getItem('bioQuestLeaderboard') || '[]');
+        lb.push({
+            name: gameState.playerName,
+            cls: gameState.playerClass,
+            score: gameState.score,
+            date: new Date().getTime()
+        });
+        lb.sort((a, b) => b.score - a.score); // Xếp hạng từ cao xuống thấp
+        localStorage.setItem('bioQuestLeaderboard', JSON.stringify(lb));
+        renderLeaderboard();
+
+        showScreen('summary-screen');
+        fireConfetti(true); // Big confetti
+    }
+
+    function renderLeaderboard() {
+        let lb = JSON.parse(localStorage.getItem('bioQuestLeaderboard') || '[]');
+        const tbody = document.getElementById('leaderboard-body');
+        tbody.innerHTML = '';
+        if (lb.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:10px;">Chưa có dữ liệu</td></tr>';
+            return;
+        }
+        lb.slice(0, 10).forEach((entry, idx) => { // Chỉ hiển thị top 10
+            tbody.innerHTML += `
+                <tr style="border-bottom: 1px solid var(--gray-light);">
+                    <td style="padding: 10px;">${idx + 1}</td>
+                    <td style="padding: 10px; font-weight: bold;">${entry.name}</td>
+                    <td style="padding: 10px;">${entry.cls}</td>
+                    <td style="padding: 10px; color: var(--accent-orange); font-weight: bold; font-size: 1.2rem;">${entry.score}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function clearLeaderboard() {
+        const pwd = prompt("Nhập mật khẩu giáo viên để xóa bảng xếp hạng:");
+        if (pwd === "Giaovien123") {
+            localStorage.removeItem('bioQuestLeaderboard');
+            renderLeaderboard();
+            showToast("Đã xóa bảng xếp hạng thành công!");
+        } else if (pwd !== null) {
+            showToast("Mật khẩu không chính xác!", "error");
+        }
+    }
+
+    function exportCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Chỉ số,Giá trị\n";
+        csvContent += `Tổng điểm,${gameState.score}\n`;
+        csvContent += `Số câu hoàn thành,${currentIndex}\n`;
+        csvContent += `Tổng số lượt trả lời,${gameState.actionsTaken}\n`;
+        csvContent += `Trả lời Đúng,${gameState.correctCount}\n`;
+        csvContent += `Trả lời Sai,${gameState.wrongCount}\n`;
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Ket_qua_BioQuest_10.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function fireConfetti(big = false) {
+        if(big) {
+            var duration = 3 * 1000;
+            var end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#2ecc71', '#f39c12'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#2ecc71', '#f39c12'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        } else {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#2ecc71', '#f39c12', '#3498db'] });
+        }
+    }
+</script>
+
+</body>
+</html>
